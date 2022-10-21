@@ -1,0 +1,10 @@
+name: mobile_lab_video
+
+packages:
+  - packages/**
+
+
+scripts:
+  pigeon:
+    name: Generate Pigeons
+    run: fvm flutter pub run pigeon --input ./pigeons/api.dart --dart_out ./lib/pigeon.dart --experimental_swift_out ./ios/Classes/Pigeon.swift --java_out ./android/src/main/kotlin/lab/mobile/mobile_lab_video/Pigeon.java --java_package "lab.mobile.mobile_lab_video"
