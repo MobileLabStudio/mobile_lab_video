@@ -7,10 +7,10 @@ class VideoPage extends StatefulWidget {
   final Uri uri;
 
   @override
-  State<VideoPage> createState() => _VideoPageState();
+  State<VideoPage> createState() => VideoPageState();
 }
 
-class _VideoPageState extends State<VideoPage> {
+class VideoPageState extends State<VideoPage> {
   late VideoPlayer videoPlayer;
   Object? error;
   StackTrace? stackTrace;
@@ -26,6 +26,7 @@ class _VideoPageState extends State<VideoPage> {
       setState(() {});
     }
   }
+
 
   @override
   void initState() {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_lab_video_example/video_page.dart';
+import 'package:mobile_lab_video_example/preload_pager.dart';
 
 class VideoPager extends StatefulWidget {
   const VideoPager({super.key, required this.videos});
@@ -11,17 +12,32 @@ class VideoPager extends StatefulWidget {
 }
 
 class _VideoPagerState extends State<VideoPager> {
+  late List<GlobalKey<VideoPageState>> keys;
+
+  @override
+  void didChangeDependencies() {
+    keys = widget.videos.map((e) => GlobalKey<VideoPageState>()).toList();
+    super.didChangeDependencies();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: PageView.builder(
-        itemCount: widget.videos.length,
-        itemBuilder: (context, index) => Center(
-          child: VideoPage(
-            key: ValueKey(index),
-            uri: widget.videos[index],
-          ),
-        ),
+      body: PreloadPager(
+        preloadSize: 3,
+        onPageChanged: (page, previousPage) {
+          keys[page].currentState?.videoPlayer.play();
+          keys[previousPage].currentState?.videoPlayer.pause();
+        },
+        children: [
+          for (var i = 0; i < keys.length; i++)
+            Center(
+              child: VideoPage(
+                key: keys[i],
+                uri: widget.videos[i],
+              ),
+            )
+        ],
       ),
     );
   }
