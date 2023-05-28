@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_lab_video_example/video_page.dart';
+import 'package:mobile_lab_video/mobile_lab_video.dart';
 import 'package:mobile_lab_video_example/preload_pager.dart';
 
 class VideoPager extends StatefulWidget {
@@ -12,11 +12,15 @@ class VideoPager extends StatefulWidget {
 }
 
 class _VideoPagerState extends State<VideoPager> {
-  late List<GlobalKey<VideoPageState>> keys;
+  late List<GlobalKey<MediaPlayerWidgetState>> keys;
 
   @override
   void didChangeDependencies() {
-    keys = widget.videos.map((e) => GlobalKey<VideoPageState>()).toList();
+    keys = widget.videos
+        .map(
+          (e) => GlobalKey<MediaPlayerWidgetState>(),
+        )
+        .toList();
     super.didChangeDependencies();
   }
 
@@ -24,17 +28,41 @@ class _VideoPagerState extends State<VideoPager> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: PreloadPager(
-        preloadSize: 3,
+        preloadSize: 1,
         onPageChanged: (page, previousPage) {
-          keys[page].currentState?.videoPlayer.play();
-          keys[previousPage].currentState?.videoPlayer.pause();
+          keys[page].currentState?.mediaPlayer
+            ?..seekTo(0)
+            ..play();
+          keys[previousPage].currentState?.mediaPlayer.pause();
         },
         children: [
           for (var i = 0; i < keys.length; i++)
             Center(
-              child: VideoPage(
-                key: keys[i],
-                uri: widget.videos[i],
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  MediaPlayerWidget(
+                    key: keys[i],
+                    dataSource: HttpVideoDataSource(widget.videos[i]),
+                    tag: 'Video at index $i',
+                  ),
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: Container(
+                      color: Colors.red,
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              widget.videos[i].toString(),
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             )
         ],

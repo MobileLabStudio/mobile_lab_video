@@ -13,7 +13,7 @@ class VideoPlayerDelegate(
     private val flutterVideoPlayerApi: Pigeon.FlutterVideoPlayerApi,
 ) : Pigeon.VideoPlayerDelegateApi {
 
-    private val playerBySurfaceId = mutableMapOf<String, VideoPlayerThread>()
+    private val playerByThreadUUID = mutableMapOf<String, VideoPlayerThread>()
     private val videoPlayerThreadFactory: VideoPlayerThreadFactory = VideoPlayerThreadFactory(
         appContext = appContext,
         textureRegistry = textureRegistry,
@@ -21,12 +21,12 @@ class VideoPlayerDelegate(
 
     override fun create(uri: String): String {
         val thread = videoPlayerThreadFactory.newMediaThread(uri)
-        playerBySurfaceId[thread.uuid] = thread
+        playerByThreadUUID[thread.uuid] = thread
         return thread.uuid
     }
 
     override fun isPlaying(playerId: String, result: Pigeon.Result<Boolean>) {
-        val thread = playerBySurfaceId[playerId] ?: return result.success(false)
+        val thread = playerByThreadUUID[playerId] ?: return result.success(false)
         val handler = Handler(Looper.getMainLooper()) {
             val isPlaying = it.data.getBoolean(VideoPlayerThreadHandler.Arg.IS_PLAYING)
             result.success(isPlaying)
@@ -40,31 +40,31 @@ class VideoPlayerDelegate(
     }
 
     override fun reset(playerId: String) {
-        playerBySurfaceId[playerId]?.sendEvent(VideoPlayerThread.Event.RESET)
+        playerByThreadUUID[playerId]?.sendEvent(VideoPlayerThread.Event.RESET)
     }
 
     override fun seekTo(milliseconds: Long, playerId: String) {
-        val thread = playerBySurfaceId[playerId] ?: return
+        val thread = playerByThreadUUID[playerId] ?: return
         thread.sendEvent(VideoPlayerThread.Event.SEEK_TO, extra = Bundle().apply {
             putLong(VideoPlayerThread.Arg.SEEK_TO_POSITION, milliseconds)
         })
     }
 
     override fun release(playerId: String) {
-        playerBySurfaceId[playerId]?.sendEvent(VideoPlayerThread.Event.RELEASE)
+        playerByThreadUUID[playerId]?.sendEvent(VideoPlayerThread.Event.RELEASE)
     }
 
     override fun pause(playerId: String) {
-        playerBySurfaceId[playerId]?.sendEvent(VideoPlayerThread.Event.PAUSE)
+        playerByThreadUUID[playerId]?.sendEvent(VideoPlayerThread.Event.PAUSE)
     }
 
     override fun play(playerId: String) {
-        playerBySurfaceId[playerId]?.sendEvent(VideoPlayerThread.Event.PLAY)
+        playerByThreadUUID[playerId]?.sendEvent(VideoPlayerThread.Event.PLAY)
     }
 
     @Suppress("UNCHECKED_CAST")
     override fun prepare(playerId: String, result: Pigeon.Result<Pigeon.VideoDetails>) {
-        val thread = playerBySurfaceId[playerId]
+        val thread = playerByThreadUUID[playerId]
             ?: return result.error(IllegalStateException("Player thread not found"))
         if (thread.isAlive) {
             throw IllegalStateException("prepare can be called once")
@@ -91,9 +91,9 @@ class VideoPlayerDelegate(
     }
 
     override fun releaseAll() {
-        for (player in playerBySurfaceId.values) {
+        for (player in playerByThreadUUID.values) {
             player.releaseAndDestroy()
         }
-        playerBySurfaceId.clear()
+        playerByThreadUUID.clear()
     }
 }

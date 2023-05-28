@@ -1,4 +1,4 @@
 library mobile_lab_video;
 
-export 'video_player.dart';
-export 'video_player_factory.dart';
+export 'src/media_player/media_player.dart';
+export 'src/media_player/media_player_widget.dart';
